@@ -1,0 +1,11 @@
+{
+  "name": "github-simple",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "cookie-parser": "latest",
+    "express": "latest",
+    "express-session": "^1.10.3",
+    "octonode": "latest"
+  }
+}
