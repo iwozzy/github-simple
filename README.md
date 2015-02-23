@@ -4,6 +4,7 @@ Github OAuth example using Node and Express
 # Pre-requisites
 1. Node
 2. Coffee
+3. Octonode
 
 # Installation
 1. Clone the repo
