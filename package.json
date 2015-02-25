@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "dependencies": {
+    "connect-firebase": "latest",
     "cookie-parser": "latest",
     "express": "latest",
-    "express-session": "^1.10.3",
+    "express-session": "latest",
     "octonode": "latest"
   }
 }

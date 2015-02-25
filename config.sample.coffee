@@ -11,4 +11,6 @@ module.exports = do ->
 			github:
 				id: 'x' #github app ID
 				secret: 'x' #github app secret
+			firebase:
+				host: 'x' #firebase url
 		}
