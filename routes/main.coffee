@@ -1,14 +1,15 @@
 express = require 'express'
+log = require '../util/log.coffee'
 
 router = express.Router()
 
 requiresLogin = (req,res,next) ->
-	console.log '----------------------------checking requiresLogin'
+	log.debug 'checking requiresLogin'
 	if !req.session.user_name?
-		console.log '----------------------------checking requiresLogin: user name not present'
+		log.debug 'checking requiresLogin: user_name not present'
 		res.redirect '/'
 	else
-		console.log '----------------------------checking requiresLogin: user name found'
+		log.debug "checking requiresLogin: user_name: #{req.session.user_name}"
 		next()
 
 router.get '/', (req,res) ->
@@ -16,14 +17,14 @@ router.get '/', (req,res) ->
 		message: "This is the landing page."
 
 router.get '/dashboard', requiresLogin, (req,res) ->
-	console.log '----------------------------at /dashboard'
-	console.log '----------------------------at /dashboard the value of user name: ' + req.session.user_name
+	log.debug 'at /dashboard'
+	log.debug "at /dashboard: user_name: #{req.session.user_name}"
 
 	res.render 'dashboard',
 		name: req.session.user_name
 
 router.get '/logout', (req,res) ->
-	console.log '----------------------------at /logout'
+	log.debug 'at /logout -> redirecting to /'
 	req.session.destroy()
 	res.redirect '/'
 

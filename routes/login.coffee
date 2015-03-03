@@ -1,6 +1,7 @@
 express = require 'express'
 github = require 'octonode'
 Firebase = require 'firebase'
+log = require '../util/log.coffee'
 
 config = require '../config.coffee'
 
@@ -15,9 +16,9 @@ router = express.Router()
 firebase = new Firebase "https://blazing-fire-93.firebaseio.com"
 .authWithCustomToken config.firebase.secret, (error, authData) ->
 	if error?
-		console.log error
+		log.error error
 	else
-		console.log "Authenticated with payload: ", authData
+		log.info "Authenticated with payload: ", authData
 
 
 #---------------------------------------
@@ -45,24 +46,22 @@ auth_url = github.auth.config(
 state = auth_url.match /&state=([0-9a-z]{32})/i
 
 router.get '/', (req,res) ->
-	console.log '----------------------------at /login'
-	#console.log req.session
-	#console.log req.session.user_name
-	if typeof req.session.user_name isnt "undefined"
-		console.log '----------------------------at /login user_name is present...redirecting to dashboard'
+	log.debug 'at /login'
+	if req.session.user_name?
+		log.debug "at /login: user_name: #{req.session.user_name} -> redirecting to /dashboard"
 		res.redirect '/dashboard'
 	else
-		console.log '----------------------------at /login user_name is NOT present...redirecting to auth_url'
+		log.debug 'at /login: user_name is not present -> redirecting to /auth_url'
 		res.redirect auth_url
 
 router.get '/auth', (req,res) ->
-	console.log '----------------------------at /login/auth'
+	log.debug 'at /login/auth'
 	values = req.query
 
 	#Check against CSRF attacks
 	if !state || state[1] != values.state
-		console.log state[1]
-		console.log values.state
+		log.info state[1]
+		log.info values.state
 
 		res.status 403
 		.end()
@@ -75,24 +74,13 @@ router.get '/auth', (req,res) ->
 			client = github.client token
 			ghme = client.me()
 			ghme.info (err, data, headers) ->
-				#console.log data
 				req.session.user_github_token = token
 				req.session.user_name = data.name
-				console.log '----------------------------at /login/auth the value of token: ' + req.session.user_github_token
-				console.log '----------------------------at /login/auth the value of user name' + req.session.user_name
-				#console.log req.session.user_name
-				res.redirect '/login'
 
-			# firebaseUsers = firebase.child('users')
+				log.debug "at /login/auth: token: #{req.session.user_github_token}"
+				log.debug "at /login/auth: user name: #{req.session.user_name}"
+				log.debug "redirecting to /dashboard"
 
-			# client = github.client token
-			# ghme = client.me()
-			# ghme.info (err, data, headers) ->
-			# 	firebaseUsers.child "#{data.login}"
-			# 	.set
-			# 		github:
-			# 			token: token
-			# 		name: data.name
-
+				res.redirect '/dashboard'
 
 module.exports = router
