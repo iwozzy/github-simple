@@ -13,4 +13,5 @@ module.exports = do ->
 				secret: 'x' #github app secret
 			firebase:
 				host: 'x' #firebase url
+				secret: 'x' #firebase secret
 		}

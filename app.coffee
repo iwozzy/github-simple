@@ -1,68 +1,59 @@
 express = require 'express'
-github = require 'octonode'
 cookieParser = require 'cookie-parser'
 session = require 'express-session'
-config = require './config.coffee'
 FirebaseStore = require('connect-firebase')(session)
 
+main = require './routes/main.coffee'
+login = require './routes/login.coffee'
+github = require './routes/github.coffee'
+
+config = require './config.coffee'
+
+
+#---------------------------------------
+#				APP
+#---------------------------------------
+
+
 app = express()
-
-#TODO set up authentication in Firebase
-
-options =
-	host: config.firebase.host
+app.set 'view engine', 'jade'
+app.set 'json spaces', 2
 
 #TODO find out what the secret is
 
-app.use session {
-	store: new FirebaseStore options
-	secret: '1234567890QWERTY'}
+app.use express cookieParser()
 
-auth_url = github.auth.config(
-	id: config.github.id
-	secret: config.github.secret)
-.login [
-	'user'
-	'repo'
-]
+app.use session
+	store: new FirebaseStore
+		host: config.firebase.host
+		token: config.firebase.secret
+	secret: '1234567890QWERTY'
 
-#Store info to verify against CSRF
 
-state = auth_url.match /&state=([0-9a-z]{32})/i
+#---------------------------------------
+#				ROUTES
+#---------------------------------------
 
-app.get '/', (req,res) ->
-	res.send 'Hello World!'
 
-#TODO clean up the routes for github oauth
-#Put them in a separate routes file and use it for /auth/github routes
-app.get '/login', (req,res) ->
-	if req.session.github_token?
-		res.redirect '/'
-	else
-		res.redirect auth_url
+app.use '/', main
+app.use '/login', login
+app.use '/github', github
 
-app.get '/auth', (req,res) ->
-	values = req.query
 
-	#Check against CSRF attacks
-	if !state || state[1] != values.state
-		console.log state[1]
-		console.log values.state
+#---------------------------------------
+#				SERVER
+#---------------------------------------
 
-		res.status 403
-		.end()
-	else
-		github.auth.login values.code, (err,token) ->
-			req.session.github_token = token
-			res.status 200
-			res.set 'Content-Type', 'text/plain'
-			res.end token
 
 server = app.listen config.expressPort, ->
 	host = server.address().address
 	port = server.address().port
 	console.log "#{config.env}: app listening at http://#{host}:#{port}"
 
-#References:
+
+#---------------------------------------
+#				REF
+#---------------------------------------
+
 #http://blog.modulus.io/nodejs-and-express-sessions
 #https://www.npmjs.com/package/connect-firebase
