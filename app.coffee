@@ -6,6 +6,7 @@ FirebaseStore = require('connect-firebase')(session)
 main = require './routes/main.coffee'
 login = require './routes/login.coffee'
 github = require './routes/github.coffee'
+dashboard = require './routes/dashboard.coffee'
 
 config = require './config.coffee'
 
@@ -38,6 +39,7 @@ app.use session
 app.use '/', main
 app.use '/login', login
 app.use '/github', github
+app.use '/dashboard', dashboard
 
 
 #---------------------------------------
