@@ -76,7 +76,11 @@ router.get '/stats', util.requiresLogin, (req,res) ->
 				commitDate = new Date commit.commit.author.date
 				date = "#{commitDate.getMonth()}/#{commitDate.getDate()}"
 				index = stats.labels.indexOf(date)
+<<<<<<< HEAD
 				log.debug "adding: #{commit.stats.additions} lines at index: #{index}"
+=======
+				log.debug "adding value at index: #{index}"
+>>>>>>> 7b3fcc203179ac9f20deb2f7f986da3d6423e714
 				stats.datasets.data[index] += commit.stats.additions
 
 				if commit.parents.length is 0 then res.json stats
