@@ -2,6 +2,7 @@ express = require 'express'
 github = require 'octonode'
 log = require '../util/log.coffee'
 util = require '../util/util.coffee'
+moment = require 'moment'
 
 router = express.Router()
 
@@ -55,36 +56,49 @@ router.get '/user/repos/:repo/commits/:sha', util.requiresLogin,(req,res) ->
 	repo.commit "#{req.params.sha}", (err, commit, headers) ->
 		res.json commit
 
+#Months for Dates are 0 based
+
 router.get '/stats', util.requiresLogin, (req,res) ->
 	stats =
 		labels: []
-		datasets:
+		datasets: []
+
+	linesAdded =
 			label: "Lines Added"
 			data: []
+
 	client = github.client req.session.user_github_token
+
 	repo = client.repo "iwozzy/github-simple"
 	repo.commits (err, commits, headers) ->
-		for commit in commits
-			commitDate = new Date commit.commit.author.date
-			log.debug "The day is: #{commitDate.getDate()}"
-			date = "#{commitDate.getMonth()}/#{commitDate.getDate()}"
-			if stats.labels.indexOf(date) is -1
-				log.debug "adding date"
-				stats.labels.push date
-				stats.datasets.data.push 0
-			repo.commit "#{commit.sha}", (err, commit, headers) ->
-				commitDate = new Date commit.commit.author.date
-				date = "#{commitDate.getMonth()}/#{commitDate.getDate()}"
-				index = stats.labels.indexOf(date)
-<<<<<<< HEAD
-				log.debug "adding: #{commit.stats.additions} lines at index: #{index}"
-=======
-				log.debug "adding value at index: #{index}"
->>>>>>> 7b3fcc203179ac9f20deb2f7f986da3d6423e714
-				stats.datasets.data[index] += commit.stats.additions
+		today = moment new Date()
+		firstCommitDate = moment new Date commits[commits.length-1].commit.author.date
 
-				if commit.parents.length is 0 then res.json stats
-		return
+		log.debug today.format("MMM Do")
+		log.debug firstCommitDate.format("MMM Do")
+
+		projectDays = today.diff firstCommitDate, 'days'
+
+		while stats.labels.length != projectDays+2
+			linesAdded.data.push 0
+			stats.labels.push firstCommitDate.format("MMM Do")
+			firstCommitDate.add 1, 'days'
+			console.log stats.labels
+			console.log linesAdded.data
+
+		for commit in commits
+
+			repo.commit "#{commit.sha}", (err, commit, headers) ->
+
+				commitDate = moment new Date commit.commit.author.date
+				index = stats.labels.indexOf(commitDate.format("MMM Do"))
+				log.debug "adding: #{commit.stats.additions} lines at index: #{index}"
+				log.debug "adding value at index: #{index}"
+				linesAdded.data[index] += commit.stats.additions
+
+				if commit.parents.length is 0
+					stats.datasets.push linesAdded
+					res.json stats
 
 # For a repository
 # Get every commit
