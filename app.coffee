@@ -6,6 +6,8 @@ FirebaseStore = require('connect-firebase')(session)
 main = require './routes/main.coffee'
 login = require './routes/login.coffee'
 github = require './routes/github.coffee'
+pocket = require './routes/pocket.coffee'
+momentum = require './routes/momentum.coffee'
 dashboard = require './routes/dashboard.coffee'
 
 config = require './config.coffee'
@@ -29,7 +31,10 @@ app.use session
 		host: config.firebase.host
 		token: config.firebase.secret
 	secret: '1234567890QWERTY'
+	resave: false
+	saveUninitialized: false
 
+app.use express.static 'public'
 
 #---------------------------------------
 #				ROUTES
@@ -39,6 +44,9 @@ app.use session
 app.use '/', main
 app.use '/login', login
 app.use '/github', github
+#app.use '/pocket', pocket
+#app.use '/momentum', momentum
+#app.use '/wunderlist', wunderlist
 app.use '/dashboard', dashboard
 
 

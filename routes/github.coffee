@@ -5,7 +5,6 @@ util = require '../util/util.coffee'
 moment = require 'moment'
 
 router = express.Router()
-
 #---------------------------------------
 #				GITHUB
 #
@@ -20,14 +19,19 @@ router.get '/user', util.requiresLogin, (req,res) ->
 	ghme.info (err, data, headers) ->
 		res.json data
 
+#TODO
+#See if it would be better to use the username in the session here
 router.get '/user/repos', util.requiresLogin, (req,res) ->
+	user_repos = []
 	client = github.client req.session.user_github_token
 	ghme = client.me()
 	ghme.repos (err, repos, headers) ->
 		for repo in repos
-			console.log repo.name
-		res.json repos
+			user_repos.push repo.name
+			log.debug repo.name
+		res.json user_repos
 
+#TODO use the current user instead of the hard coded iwozzy
 #TODO get user stats
 #TODO submit pull request to octonode
 #https://developer.github.com/v3/repos/statistics/
@@ -46,9 +50,12 @@ router.get '/user/repos/:repo/commits', util.requiresLogin,(req,res) ->
 	client = github.client req.session.user_github_token
 	repo = client.repo "iwozzy/#{req.params.repo}"
 	repo.commits (err, commits, headers) ->
-		for commit  in commits
-			log.info commit.sha
-		res.json commits
+		log.debug "headers #{headers}"
+		log.debug "err #{err}"
+		log.debug "commits #{commits}"
+		#for commit  in commits
+		#	log.info commit.sha
+		#res.json commits
 
 router.get '/user/repos/:repo/commits/:sha', util.requiresLogin,(req,res) ->
 	client = github.client req.session.user_github_token
@@ -56,9 +63,12 @@ router.get '/user/repos/:repo/commits/:sha', util.requiresLogin,(req,res) ->
 	repo.commit "#{req.params.sha}", (err, commit, headers) ->
 		res.json commit
 
-#Months for Dates are 0 based
+#Months for Dates are 0 based - I think this is solved with moment.js
+#TODO
+#Break this up into smaller units
+#Promises?
 
-router.get '/stats', util.requiresLogin, (req,res) ->
+router.get '/stats/:repo', util.requiresLogin, (req,res) ->
 	stats =
 		labels: []
 		datasets: []
@@ -69,11 +79,18 @@ router.get '/stats', util.requiresLogin, (req,res) ->
 
 	client = github.client req.session.user_github_token
 
-	repo = client.repo "iwozzy/github-simple"
+	#REPLACE THIS WITH A VARIABLE
+	log.debug "#{req.session.username}/#{req.params.repo}"
+	repo = client.repo "#{req.session.username}/#{req.params.repo}"
 	repo.commits (err, commits, headers) ->
+		log.debug commits
+		log.error err
+		log.debug headers
 		today = moment new Date()
 		firstCommitDate = moment new Date commits[commits.length-1].commit.author.date
 
+		#TODO
+		#Include the Day of Week
 		log.debug today.format("MMM Do")
 		log.debug firstCommitDate.format("MMM Do")
 
@@ -100,6 +117,7 @@ router.get '/stats', util.requiresLogin, (req,res) ->
 					stats.datasets.push linesAdded
 					res.json stats
 
+# Pick the right repository
 # For a repository
 # Get every commit
 # For every commit check what day it was made on

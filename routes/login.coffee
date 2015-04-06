@@ -76,6 +76,7 @@ router.get '/auth', (req,res) ->
 			ghme.info (err, data, headers) ->
 				req.session.user_github_token = token
 				req.session.user_name = data.name
+				req.session.username = data.login
 
 				log.debug "at /login/auth: token: #{req.session.user_github_token}"
 				log.debug "at /login/auth: user name: #{req.session.user_name}"

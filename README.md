@@ -8,5 +8,5 @@ Github OAuth example using Node and Express
 # Installation
 1. Clone the repo
 2. Run 'npm install'
-3. Replace the values in the config.coffee file
+3. Rename the 'config.sample.coffee' to config.coffee' and replace the values
 4. Run 'coffee app.coffee'
